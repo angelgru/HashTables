@@ -1,19 +1,21 @@
 import java.util.Optional;
 
-public class LinearProbingHashTable {
+public class QuadraticProbingHashTable {
 
     private Word[] dictionary;
     private final int dictionaryWords = 50000;
     private int alphabetCharacters = 27;
 
-    LinearProbingHashTable() {
+    QuadraticProbingHashTable() {
         dictionary = new Word[dictionaryWords];
     }
 
     Optional<Word> find(String word) {
         int hashedKey = hash(word);
+        int probing = 1;
         while(dictionary[hashedKey] != null && !dictionary[hashedKey].key.equals(word)) {
-            hashedKey++;
+            hashedKey = hashedKey + (int)Math.pow(probing, 2);
+            probing++;
         }
 
         return Optional.ofNullable(dictionary[hashedKey]);
@@ -22,8 +24,10 @@ public class LinearProbingHashTable {
     void insert(String wordI, String meaning) {
         Word word = new Word(wordI, meaning);
         int hashedKey = hash(wordI);
+        int probing = 1;
         while(dictionary[hashedKey] != null && !dictionary[hashedKey].key.equals("-1")){
-            hashedKey++;
+            hashedKey = hashedKey + (int)Math.pow(probing, 2);
+            probing++;
         }
         dictionary[hashedKey] = word;
     }
@@ -31,8 +35,10 @@ public class LinearProbingHashTable {
     void delete(String word) {
         Word replacement = new Word("-1", "DELETED VALUE");
         int hashedKey = hash(word);
+        int probing = 1;
         while(dictionary[hashedKey] != null && !dictionary[hashedKey].key.equals(word)) {
-            hashedKey++;
+            hashedKey = hashedKey + (int)Math.pow(probing, 2);
+            probing++;
         }
 
         if(dictionary[hashedKey] != null)
@@ -169,7 +175,7 @@ public class LinearProbingHashTable {
             return 0;
         }
         return Integer.valueOf(splitted[wordPosition]) * (int)Math.pow(alphabetCharacters, wordSize) +
-        calculate(splitted,--wordSize,++wordPosition);
+                calculate(splitted,--wordSize,++wordPosition);
     }
 
     class Word {
@@ -183,7 +189,7 @@ public class LinearProbingHashTable {
     }
 
     public static void main(String[] args) {
-        LinearProbingHashTable hashTable = new LinearProbingHashTable();
+        QuadraticProbingHashTable hashTable = new QuadraticProbingHashTable();
         hashTable.insert("cat", "Pet that want to cuddle and eat a lot");
         hashTable.insert("dog", "Pet that is loyal to people");
         hashTable.insert("kittens", "Pet that is fluffy and small");

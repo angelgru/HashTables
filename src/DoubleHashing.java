@@ -1,19 +1,20 @@
 import java.util.Optional;
 
-public class LinearProbingHashTable {
+public class DoubleHashing {
 
     private Word[] dictionary;
     private final int dictionaryWords = 50000;
     private int alphabetCharacters = 27;
 
-    LinearProbingHashTable() {
+    DoubleHashing() {
         dictionary = new Word[dictionaryWords];
     }
 
     Optional<Word> find(String word) {
         int hashedKey = hash(word);
+        int stepSize = hash1(word);
         while(dictionary[hashedKey] != null && !dictionary[hashedKey].key.equals(word)) {
-            hashedKey++;
+            hashedKey = hashedKey + stepSize;
         }
 
         return Optional.ofNullable(dictionary[hashedKey]);
@@ -22,8 +23,9 @@ public class LinearProbingHashTable {
     void insert(String wordI, String meaning) {
         Word word = new Word(wordI, meaning);
         int hashedKey = hash(wordI);
+        int stepSize = hash1(wordI);
         while(dictionary[hashedKey] != null && !dictionary[hashedKey].key.equals("-1")){
-            hashedKey++;
+            hashedKey = hashedKey + stepSize;
         }
         dictionary[hashedKey] = word;
     }
@@ -31,8 +33,9 @@ public class LinearProbingHashTable {
     void delete(String word) {
         Word replacement = new Word("-1", "DELETED VALUE");
         int hashedKey = hash(word);
+        int stepSize = hash1(word);
         while(dictionary[hashedKey] != null && !dictionary[hashedKey].key.equals(word)) {
-            hashedKey++;
+            hashedKey = hashedKey + stepSize;
         }
 
         if(dictionary[hashedKey] != null)
@@ -41,6 +44,10 @@ public class LinearProbingHashTable {
 
     int hash(String word) {
         return convertToNumbers(word) % dictionaryWords;
+    }
+
+    int hash1(String word) {
+        return  5 - (convertToNumbers(word) % 5);
     }
 
     int convertToNumbers(String word) {
@@ -169,7 +176,7 @@ public class LinearProbingHashTable {
             return 0;
         }
         return Integer.valueOf(splitted[wordPosition]) * (int)Math.pow(alphabetCharacters, wordSize) +
-        calculate(splitted,--wordSize,++wordPosition);
+                calculate(splitted,--wordSize,++wordPosition);
     }
 
     class Word {
@@ -183,7 +190,7 @@ public class LinearProbingHashTable {
     }
 
     public static void main(String[] args) {
-        LinearProbingHashTable hashTable = new LinearProbingHashTable();
+        DoubleHashing hashTable = new DoubleHashing();
         hashTable.insert("cat", "Pet that want to cuddle and eat a lot");
         hashTable.insert("dog", "Pet that is loyal to people");
         hashTable.insert("kittens", "Pet that is fluffy and small");

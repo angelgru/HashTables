@@ -1,46 +1,63 @@
-import java.util.Optional;
+public class SeparateChainingHashTable {
 
-public class LinearProbingHashTable {
-
-    private Word[] dictionary;
-    private final int dictionaryWords = 50000;
+    int dictionaryWords = 50000;
+    Node[] hashTable;
     private int alphabetCharacters = 27;
 
-    LinearProbingHashTable() {
-        dictionary = new Word[dictionaryWords];
-    }
-
-    Optional<Word> find(String word) {
-        int hashedKey = hash(word);
-        while(dictionary[hashedKey] != null && !dictionary[hashedKey].key.equals(word)) {
-            hashedKey++;
-        }
-
-        return Optional.ofNullable(dictionary[hashedKey]);
-    }
-
-    void insert(String wordI, String meaning) {
-        Word word = new Word(wordI, meaning);
-        int hashedKey = hash(wordI);
-        while(dictionary[hashedKey] != null && !dictionary[hashedKey].key.equals("-1")){
-            hashedKey++;
-        }
-        dictionary[hashedKey] = word;
-    }
-
-    void delete(String word) {
-        Word replacement = new Word("-1", "DELETED VALUE");
-        int hashedKey = hash(word);
-        while(dictionary[hashedKey] != null && !dictionary[hashedKey].key.equals(word)) {
-            hashedKey++;
-        }
-
-        if(dictionary[hashedKey] != null)
-            dictionary[hashedKey] = replacement;
+    SeparateChainingHashTable() {
+        hashTable = new Node[dictionaryWords];
     }
 
     int hash(String word) {
         return convertToNumbers(word) % dictionaryWords;
+    }
+
+    void insert(String word, String meaning) {
+        Node wordN = new Node(word, meaning);
+
+        int hashedKey = hash(word);
+        if(hashTable[hashedKey] == null)
+            hashTable[hashedKey] = wordN;
+        else {
+            Node current = hashTable[hashedKey];
+            Node prev = current;
+            while(current != null){
+                prev = current;
+                if(current.word.equals(word)) {
+                    current.meaning = meaning;
+                    break;
+                }
+                current = current.next;
+            }
+            if(current == null)
+                prev.next = wordN;
+        }
+    }
+
+    String find(String word) {
+        int hashedKey = hash(word);
+        Node current = hashTable[hashedKey];
+        while (current != null && !current.word.equals(word)) {
+            current = current.next;
+        }
+
+        if(current != null)
+            return current.meaning;
+        return null;
+    }
+
+    void remove(String word) {
+        int hashedKey = hash(word);
+        Node current = hashTable[hashedKey];
+        Node prev = current;
+        while (current != null && !current.word.equals(word)) {
+            prev = current;
+            current = current.next;
+        }
+
+        if(current != null) {
+            prev.next = current.next;
+        }
     }
 
     int convertToNumbers(String word) {
@@ -169,26 +186,29 @@ public class LinearProbingHashTable {
             return 0;
         }
         return Integer.valueOf(splitted[wordPosition]) * (int)Math.pow(alphabetCharacters, wordSize) +
-        calculate(splitted,--wordSize,++wordPosition);
+                calculate(splitted,--wordSize,++wordPosition);
     }
 
-    class Word {
-        String key;
+    class Node {
+        String word;
         String meaning;
+        Node next;
 
-        Word(String key, String meaning) {
-            this.key = key;
+        Node(String word, String meaning) {
+            this.word = word;
             this.meaning = meaning;
         }
     }
 
     public static void main(String[] args) {
-        LinearProbingHashTable hashTable = new LinearProbingHashTable();
+        SeparateChainingHashTable hashTable = new SeparateChainingHashTable();
         hashTable.insert("cat", "Pet that want to cuddle and eat a lot");
         hashTable.insert("dog", "Pet that is loyal to people");
         hashTable.insert("kittens", "Pet that is fluffy and small");
-        hashTable.delete("dog");
+        hashTable.remove("dog");
 
-        hashTable.find("kittens").ifPresent((Word word) -> {System.out.println(word.meaning);});
+        String meaning = hashTable.find("kittens");
+        if(meaning != null)
+            System.out.println(meaning);
     }
 }
